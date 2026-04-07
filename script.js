@@ -144,12 +144,12 @@ const education = [
   },
   {
     degree: "Higher Secondary Education (12th Grade)",
-    institution: "School/College",
-    specialization: "Science & Computer Science",
-    period: "Started Foundation",
-    description: "Strong foundation in computer science, mathematics, and programming fundamentals.",
-    highlights: ["Computer Science", "Mathematics", "Programming Basics"],
-    icon: "fas fa-laptop-code",
+    institution: "East West Pre University",
+    specialization: "Science - PCMB (Physics, Chemistry, Mathematics, Biology)",
+    period: "2022 - 2024",
+    description: "Strong foundation in science subjects with focus on Physics, Chemistry, Mathematics, and Biology. Developed analytical and problem-solving skills.",
+    highlights: ["Physics", "Chemistry", "Mathematics", "Biology"],
+    icon: "fas fa-book",
   },
 ];
 
@@ -511,7 +511,7 @@ function handleContactForm(e) {
   const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
   
   setTimeout(() => {
-    window.open(`mailto:chethangowda25832@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:chethangowda2583@gmail.com?subject=${subject}&body=${body}`, '_blank');
     btn.innerHTML = '<i class="fas fa-check"></i> Sent!';
     btn.style.background = '#4ade80';
     
@@ -522,6 +522,12 @@ function handleContactForm(e) {
       document.getElementById('contact-form').reset();
     }, 3000);
   }, 1000);
+}
+
+/* ===== CV DOWNLOAD ===== */
+function downloadCV() {
+  // Open CV page with auto-download
+  window.open('cv.html?download=true', '_blank');
 }
 
 /* ===== YEAR ===== */
