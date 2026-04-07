@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chethan Gowda C | Frontend Developer & AWS Cloud Professional</title>
+  <meta name="description" content="Chethan Gowda C – Frontend developer, AWS cloud professional, and BCA student at Sapthagiri NPS University. Explore my projects, skills, and experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Cyber Grid Background -->
+  <div class="cyber-grid"></div>
+
+  <!-- Floating Particles -->
+  <div id="particles-container"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <button class="nav-logo" onclick="scrollToSection('home')">
+        <div class="nav-logo-icon"><span>$</span></div>
+        <div class="nav-logo-text"><span class="neon">cg</span><span class="muted">@chethan</span></div>
+      </button>
+
+      <div class="nav-links" id="nav-links">
+        <button onclick="scrollToSection('home')" data-section="home">Home</button>
+        <button onclick="scrollToSection('about')" data-section="about">About</button>
+        <button onclick="scrollToSection('skills')" data-section="skills">Skills</button>
+        <button onclick="scrollToSection('projects')" data-section="projects">Projects</button>
+        <button onclick="scrollToSection('experience')" data-section="experience">Experience</button>
+        <button onclick="scrollToSection('blog')" data-section="blog">Blog</button>
+        <button onclick="scrollToSection('contact')" data-section="contact">Contact</button>
+      </div>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme" onclick="toggleTheme()">
+          <i class="fas fa-sun"></i>
+        </button>
+        <button class="icon-btn mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+      <button onclick="scrollToSection('home'); closeMobileMenu()" data-section="home">Home</button>
+      <button onclick="scrollToSection('about'); closeMobileMenu()" data-section="about">About</button>
+      <button onclick="scrollToSection('skills'); closeMobileMenu()" data-section="skills">Skills</button>
+      <button onclick="scrollToSection('projects'); closeMobileMenu()" data-section="projects">Projects</button>
+      <button onclick="scrollToSection('experience'); closeMobileMenu()" data-section="experience">Experience</button>
+      <button onclick="scrollToSection('blog'); closeMobileMenu()" data-section="blog">Blog</button>
+      <button onclick="scrollToSection('contact'); closeMobileMenu()" data-section="contact">Contact</button>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section id="home">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="section-container hero-inner">
+      <div class="hero-text animate-in" style="--delay:0s">
+        <div class="status-badge animate-in" style="--delay:0.2s">
+          <span class="status-dot"></span>
+          <span>Available for opportunities</span>
+        </div>
+
+        <h1 class="animate-in" style="--delay:0.3s">
+          <span class="muted small-label">Hello, I'm 👋</span>
+          <span class="gradient-text">Chethan Gowda C</span>
+        </h1>
+
+        <div class="typing-wrapper animate-in" style="--delay:0.4s">
+          <span class="muted">I'm a </span>
+          <span class="neon" id="typed-text"></span><span class="typing-cursor"></span>
+        </div>
+
+        <p class="hero-desc animate-in" style="--delay:0.5s">
+          Frontend developer crafting beautiful web experiences and exploring cloud solutions with AWS. Based in Bangalore.
+        </p>
+
+        <div class="hero-btns animate-in" style="--delay:0.6s">
+          <a href="#projects" onclick="scrollToSection('projects'); return false;" class="btn btn-primary">
+            <i class="fas fa-eye"></i> View Projects
+          </a>
+          <a href="#contact" onclick="scrollToSection('contact'); return false;" class="btn btn-outline">
+            <i class="fas fa-paper-plane"></i> Get In Touch
+          </a>
+          <a href="images/Chethan.pdf" download="Chethan_Gowda_C_CV.pdf" class="btn btn-ghost">
+            <i class="fas fa-download"></i> Download CV
+          </a>
+        </div>
+
+        <div class="hero-stats animate-in" style="--delay:0.8s">
+          <div class="stat">
+            <div class="stat-val gradient-text">5+</div>
+            <div class="stat-lbl muted">Projects</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val gradient-text">2+</div>
+            <div class="stat-lbl muted">Years Experience</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-image animate-in" style="--delay:0.4s">
+        <div class="profile-ring">
+          <div class="profile-ring-inner"></div>
+        </div>
+        <div class="profile-img-wrap">
+          <img src="images/pic.png" alt="Aakash Sapkota" class="profile-img" />
+          <div class="img-overlay"></div>
+        </div>
+        <div class="scan-line-wrap">
+          <div class="scan-line"></div>
+        </div>
+        <div class="secure-badge float-anim">
+          <i class="fas fa-lock"></i> Secure
+        </div>
+        <div class="float-icon fi-1 float-anim" style="--fd:0s"><i class="fab fa-js"></i></div>
+        <div class="float-icon fi-2 float-anim" style="--fd:1s"><i class="fab fa-react"></i></div>
+        <div class="float-icon fi-3 float-anim" style="--fd:2s"><i class="fab fa-aws"></i></div>
+        <div class="float-icon fi-4 float-anim" style="--fd:1.5s"><i class="fab fa-python"></i></div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator animate-in" style="--delay:1.2s">
+      <span>Scroll Down</span>
+      <div class="scroll-mouse"><div class="scroll-dot"></div></div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>About <span class="gradient-text">Me</span></h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="about-grid">
+        <div class="glass-card reveal" style="--delay:0s">
+          <div class="code-label"><span class="dot-green"></span><span class="muted font-mono">// about.tsx</span></div>
+          <p class="about-bio">
+            I'm a BCA student at <strong class="neon">Sapthagiri NPS University</strong>, specializing in Cloud Computing and Cyber Security. I'm passionate about frontend development and AWS cloud solutions.
+          </p>
+          <p class="muted mt-4 lh-relaxed">
+            With a strong foundation in C, Python, and modern web technologies, I create beautiful, responsive web applications. I'm currently expanding my expertise in cloud computing with AWS and combining security knowledge to build scalable digital solutions.
+          </p>
+          <div class="tags mt-6">
+            <span class="tag">Problem Solver</span>
+            <span class="tag">Team Leader</span>
+            <span class="tag">Quick Learner</span>
+            <span class="tag">Security-First</span>
+          </div>
+        </div>
+
+        <div class="about-highlights reveal" style="--delay:0.2s">
+          <div class="glass-card highlight-card">
+            <div class="highlight-header">
+              <div class="highlight-icon"><i class="fas fa-code"></i></div>
+              <h3>Frontend Development</h3>
+            </div>
+            <div class="tags">
+              <span class="tag-sm">React</span>
+              <span class="tag-sm">HTML/CSS</span>
+              <span class="tag-sm">JavaScript</span>
+              <span class="tag-sm">Web Design</span>
+            </div>
+          </div>
+          <div class="glass-card highlight-card">
+            <div class="highlight-header">
+              <div class="highlight-icon"><i class="fab fa-aws"></i></div>
+              <h3>Cloud & AWS</h3>
+            </div>
+            <div class="tags">
+              <span class="tag-sm">AWS Services</span>
+              <span class="tag-sm">Cloud Computing</span>
+              <span class="tag-sm">Cyber Security</span>
+              <span class="tag-sm">Python</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="glass-card stat-card reveal" style="--delay:0s">
+          <i class="fas fa-code stat-icon"></i>
+          <div class="stat-val gradient-text">10+</div>
+          <div class="stat-lbl muted">Web Projects</div>
+        </div>
+        <div class="glass-card stat-card reveal" style="--delay:0.1s">
+          <i class="fab fa-react stat-icon"></i>
+          <div class="stat-val gradient-text">5+</div>
+          <div class="stat-lbl muted">React Projects</div>
+        </div>
+        <div class="glass-card stat-card reveal" style="--delay:0.2s">
+          <i class="fab fa-aws stat-icon"></i>
+          <div class="stat-val gradient-text">AWS</div>
+          <div class="stat-lbl muted">Cloud Knowledge</div>
+        </div>
+        <div class="glass-card stat-card reveal" style="--delay:0.3s">
+          <i class="fas fa-laptop-code stat-icon"></i>
+          <div class="stat-val gradient-text">100%</div>
+          <div class="stat-lbl muted">Responsive Design</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SKILLS ===== -->
+  <section id="skills">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>My <span class="gradient-text">Skills</span></h2>
+        <div class="divider-line"></div>
+        <p class="muted mt-4">Technologies and tools I work with across web development and cloud computing</p>
+      </div>
+
+      <div class="tab-btns reveal" id="skill-tabs">
+        <button class="tab-btn active" onclick="switchSkillTab(0, this)">Frontend</button>
+        <button class="tab-btn" onclick="switchSkillTab(1, this)">Programming</button>
+        <button class="tab-btn" onclick="switchSkillTab(2, this)">Cloud & AWS</button>
+        <button class="tab-btn" onclick="switchSkillTab(3, this)">Tools</button>
+      </div>
+
+      <div id="skills-grid" class="skills-grid reveal"></div>
+    </div>
+  </section>
+
+  <!-- ===== PROJECTS ===== -->
+  <section id="projects">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>Projects &amp; <span class="gradient-text">Tools</span></h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="tab-btns reveal" id="project-filter-btns">
+        <button class="tab-btn active" onclick="filterProjects('all', this)">All Projects</button>
+        <button class="tab-btn" onclick="filterProjects('web', this)">Web Projects</button>
+        <button class="tab-btn" onclick="filterProjects('aws', this)">AWS Projects</button>
+        <button class="tab-btn" onclick="filterProjects('github', this)">GitHub Projects</button>
+      </div>
+
+      <div id="projects-grid" class="projects-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===== EXPERIENCE ===== -->
+  <section id="experience">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>Experience &amp; <span class="gradient-text">Education</span></h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="tab-btns reveal" id="exp-tabs">
+        <button class="tab-btn active" onclick="switchExpTab('experience', this)">Experience</button>
+        <button class="tab-btn" onclick="switchExpTab('education', this)">Education</button>
+        <button class="tab-btn" onclick="switchExpTab('certifications', this)">Certifications</button>
+        <button class="tab-btn" onclick="switchExpTab('achievements', this)">Achievements</button>
+      </div>
+
+      <div id="exp-content"></div>
+    </div>
+  </section>
+
+  <!-- ===== BLOG ===== -->
+  <section id="blog" class="section-auto">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>Latest <span class="gradient-text">Blog Posts</span></h2>
+        <div class="divider-line"></div>
+        <p class="muted mt-4">Sharing my knowledge and experiences in frontend development and cloud computing</p>
+      </div>
+
+      <div class="blog-grid">
+        <article class="glass-card blog-card reveal" style="--delay:0s">
+          <div class="blog-icon" style="background:rgba(0,212,255,0.12)"><i class="fab fa-react" style="color:var(--cyber-blue)"></i></div>
+          <div class="blog-body">
+            <div class="blog-meta">
+              <span class="blog-cat" style="background:rgba(0,212,255,0.12);color:var(--cyber-blue)"><i class="fas fa-tag"></i> Frontend</span>
+              <span class="muted small"><i class="fas fa-clock"></i> 8 min</span>
+            </div>
+            <h3>Getting Started with React: A Beginner's Guide</h3>
+            <p class="muted small lh-relaxed">Learn the fundamentals of React and build your first interactive web application with modern JavaScript practices.</p>
+            <div class="blog-footer">
+              <span class="muted small">Feb 15, 2026</span>
+              <span class="neon small">Read More <i class="fas fa-arrow-right"></i></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card blog-card reveal" style="--delay:0.1s">
+          <div class="blog-icon" style="background:rgba(0,212,255,0.12)"><i class="fas fa-code" style="color:var(--cyber-blue)"></i></div>
+          <div class="blog-body">
+            <div class="blog-meta">
+              <span class="blog-cat" style="background:rgba(0,212,255,0.12);color:var(--cyber-blue)"><i class="fas fa-tag"></i> Web Development</span>
+              <span class="muted small"><i class="fas fa-clock"></i> 12 min</span>
+            </div>
+            <h3>Building Secure Web Applications with Next.js</h3>
+            <p class="muted small lh-relaxed">Best practices for implementing security measures in modern web applications using Next.js and Node.js.</p>
+            <div class="blog-footer">
+              <span class="muted small">Jan 28, 2026</span>
+              <span class="neon small">Read More <i class="fas fa-arrow-right"></i></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card blog-card reveal" style="--delay:0.2s">
+          <div class="blog-icon" style="background:rgba(255,62,62,0.12)"><i class="fab fa-aws" style="color:var(--accent-red)"></i></div>
+          <div class="blog-body">
+            <div class="blog-meta">
+              <span class="blog-cat" style="background:rgba(255,62,62,0.12);color:var(--accent-red)"><i class="fas fa-tag"></i> Cloud</span>
+              <span class="muted small"><i class="fas fa-clock"></i> 10 min</span>
+            </div>
+            <h3>Getting Started with AWS: Cloud Basics</h3>
+            <p class="muted small lh-relaxed">Learn AWS fundamentals, EC2 instances, S3 storage, and how to deploy your first application on the cloud.</p>
+            <div class="blog-footer">
+              <span class="muted small">Jan 10, 2026</span>
+              <span class="neon small">Read More <i class="fas fa-arrow-right"></i></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card blog-card reveal" style="--delay:0.3s">
+          <div class="blog-icon" style="background:rgba(180,74,255,0.12)"><i class="fas fa-network-wired" style="color:var(--cyber-purple)"></i></div>
+          <div class="blog-body">
+            <div class="blog-meta">
+              <span class="blog-cat" style="background:rgba(180,74,255,0.12);color:var(--cyber-purple)"><i class="fas fa-tag"></i> Networking</span>
+              <span class="muted small"><i class="fas fa-clock"></i> 15 min</span>
+            </div>
+            <h3>Network Security Fundamentals for Developers</h3>
+            <p class="muted small lh-relaxed">Essential network security concepts every developer should understand to build more secure applications.</p>
+            <div class="blog-footer">
+              <span class="muted small">Dec 20, 2025</span>
+              <span class="neon small">Read More <i class="fas fa-arrow-right"></i></span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT ===== -->
+  <section id="contact">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <h2>Get In <span class="gradient-text">Touch</span></h2>
+        <div class="divider-line"></div>
+        <p class="muted mt-4">Let's discuss your next web development or cloud project opportunity</p>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-info reveal" style="--delay:0s">
+          <div class="glass-card contact-card">
+            <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+            <div>
+              <h3 class="small fw-600">Email</h3>
+              <p class="muted small">chethangowda25832@gmail.com</p>
+              <a href="mailto:chethangowda25832@gmail.com" class="contact-link"><i class="fas fa-paper-plane"></i> Send Email</a>
+            </div>
+          </div>
+          <div class="glass-card contact-card">
+            <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <h3 class="small fw-600">Location</h3>
+              <p class="muted small">Bangalore, Nagasandra</p>
+              <p class="muted x-small">IST (UTC +5:30) • Available for remote work</p>
+            </div>
+          </div>
+          <div class="glass-card contact-card">
+            <div class="contact-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+              <h3 class="small fw-600">Availability</h3>
+              <p class="muted small">Open to new opportunities</p>
+              <div class="avail-status">
+                <span class="status-dot"></span>
+                <span class="neon x-small">Available for hire</span>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card contact-card">
+            <div class="contact-icon"><i class="fas fa-file-pdf"></i></div>
+            <div>
+              <h3 class="small fw-600">Resume</h3>
+              <p class="muted small">Download my CV</p>
+              <a href="images/Chethan.pdf" download="Chethan_Gowda_C_CV.pdf" class="contact-link"><i class="fas fa-paper-plane"></i> Download CV</a>
+            </div>
+          </div>
+
+          <div class="social-links reveal" style="--delay:0.4s">
+            <a href="https://github.com/chethangowda25832-ctrl" target="_blank" rel="noopener" title="GitHub" class="social-btn"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/chethan-gowda-c-4b5a1a3b1" target="_blank" rel="noopener" title="LinkedIn" class="social-btn"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="glass-card contact-form-card reveal" style="--delay:0.2s">
+          <h3 class="fw-600 mb-2">Send me a message</h3>
+          <p class="muted small mb-6">I'll get back to you within 24 hours</p>
+          <form id="contact-form" onsubmit="handleContactForm(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name"><i class="fas fa-user"></i> Your Name</label>
+                <input type="text" id="name" required minlength="2" placeholder="Enter your full name" />
+              </div>
+              <div class="form-group">
+                <label for="email"><i class="fas fa-envelope"></i> Your Email</label>
+                <input type="email" id="email" required placeholder="Enter your email" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="message"><i class="fas fa-comment"></i> Your Message</label>
+              <textarea id="message" rows="5" required minlength="10" placeholder="Tell me about your project..."></textarea>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn-primary" id="send-btn">
+                <i class="fas fa-paper-plane"></i> Send Message
+              </button>
+              <span class="muted x-small"><i class="fas fa-shield-alt"></i> Secure &amp; private</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="section-container footer-inner">
+      <div class="social-links">
+        <a href="https://www.linkedin.com/in/chethan-gowda-c-4b5a1a3b1/" target="_blank" rel="noopener" title="LinkedIn" class="social-btn"><i class="fab fa-linkedin"></i></a>
+        <a href="https://www.instagrchethangowda25832-ctrl" target="_blank" rel="noopener" title="GitHub" class="social-btn"><i class="fab fa-github"></i></a>
+         </div>
+      <p class="muted small">© <span id="year"></span> Chethan Gowda C
+
+  <script src="script.js"></script>
+</body>
+</html>
