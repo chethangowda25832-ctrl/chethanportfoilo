@@ -344,7 +344,6 @@ function initBackground() {
   document.body.insertBefore(canvas, document.body.firstChild);
   const ctx = canvas.getContext('2d');
   let W, H;
-  const mouse = { x: -9999, y: -9999 };
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -352,10 +351,8 @@ function initBackground() {
   }
   resize();
   window.addEventListener('resize', () => { resize(); initNodes(); });
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
   const CONNECT_DIST = 150;
-  const MOUSE_DIST   = 180;
   const SPEED        = 0.45;
   let nodes = [];
 
@@ -377,22 +374,10 @@ function initBackground() {
   function loop() {
     ctx.clearRect(0, 0, W, H);
 
-    // Update nodes
+    // Move nodes
     nodes.forEach(n => {
-      // mouse attraction
-      const mdx = mouse.x - n.x, mdy = mouse.y - n.y;
-      const md  = Math.sqrt(mdx * mdx + mdy * mdy);
-      if (md < MOUSE_DIST && md > 0) {
-        const force = (MOUSE_DIST - md) / MOUSE_DIST * 0.06;
-        n.vx += (mdx / md) * force;
-        n.vy += (mdy / md) * force;
-      }
-      // dampen & move
-      n.vx *= 0.98;
-      n.vy *= 0.98;
-      n.x  += n.vx;
-      n.y  += n.vy;
-      // bounce walls
+      n.x += n.vx;
+      n.y += n.vy;
       if (n.x < 0)  { n.x = 0;  n.vx *= -1; }
       if (n.x > W)  { n.x = W;  n.vx *= -1; }
       if (n.y < 0)  { n.y = 0;  n.vy *= -1; }
@@ -406,9 +391,8 @@ function initBackground() {
         const dy = nodes[i].y - nodes[j].y;
         const d  = Math.sqrt(dx * dx + dy * dy);
         if (d < CONNECT_DIST) {
-          const alpha = (1 - d / CONNECT_DIST) * 0.4;
           ctx.save();
-          ctx.globalAlpha = alpha;
+          ctx.globalAlpha = (1 - d / CONNECT_DIST) * 0.4;
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth   = 0.7;
           ctx.beginPath();
@@ -417,21 +401,6 @@ function initBackground() {
           ctx.stroke();
           ctx.restore();
         }
-      }
-      // also draw line from node to mouse if close
-      const mdx = nodes[i].x - mouse.x, mdy = nodes[i].y - mouse.y;
-      const md  = Math.sqrt(mdx * mdx + mdy * mdy);
-      if (md < MOUSE_DIST) {
-        const alpha = (1 - md / MOUSE_DIST) * 0.5;
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth   = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(nodes[i].x, nodes[i].y);
-        ctx.lineTo(mouse.x, mouse.y);
-        ctx.stroke();
-        ctx.restore();
       }
     }
 
