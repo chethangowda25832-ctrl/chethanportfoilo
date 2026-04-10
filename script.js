@@ -343,7 +343,7 @@ function initParticles() {
 
   const ctx = canvas.getContext('2d');
   let W, H, particles = [], mouse = { x: -9999, y: -9999 };
-  const COUNT = 90;
+  const COUNT = 160; // more particles
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -353,53 +353,101 @@ function initParticles() {
   window.addEventListener('resize', resize);
   window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
+  // Particle types: 0=dot, 1=ring, 2=cross, 3=diamond
   class Particle {
     constructor() { this.reset(true); }
     reset(init) {
       this.x = Math.random() * W;
       this.y = init ? Math.random() * H : H + 10;
-      this.r = 0.5 + Math.random() * 1.5;
-      this.speed = 0.3 + Math.random() * 0.7;
-      this.vx = (Math.random() - 0.5) * 0.4;
+      this.type = Math.floor(Math.random() * 4);
+      this.r = this.type === 0 ? 0.5 + Math.random() * 1.5
+             : this.type === 1 ? 2 + Math.random() * 3
+             : this.type === 2 ? 2 + Math.random() * 2
+             : 1.5 + Math.random() * 2;
+      this.speed = 0.2 + Math.random() * 0.6;
+      this.vx = (Math.random() - 0.5) * 0.3;
       this.vy = -(this.speed);
       this.alpha = 0;
-      this.maxAlpha = 0.2 + Math.random() * 0.5;
+      this.maxAlpha = this.type === 0 ? 0.3 + Math.random() * 0.5
+                    : this.type === 1 ? 0.15 + Math.random() * 0.25
+                    : 0.2 + Math.random() * 0.35;
       this.life = 0;
-      this.maxLife = 200 + Math.random() * 300;
+      this.maxLife = 180 + Math.random() * 320;
+      this.rot = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.02;
     }
     update() {
       this.life++;
-      // fade in / out
-      if (this.life < 40) this.alpha = (this.life / 40) * this.maxAlpha;
-      else if (this.life > this.maxLife - 40) this.alpha = ((this.maxLife - this.life) / 40) * this.maxAlpha;
+      const fadeLen = 50;
+      if (this.life < fadeLen) this.alpha = (this.life / fadeLen) * this.maxAlpha;
+      else if (this.life > this.maxLife - fadeLen) this.alpha = ((this.maxLife - this.life) / fadeLen) * this.maxAlpha;
       else this.alpha = this.maxAlpha;
 
       // mouse repulsion
       const dx = this.x - mouse.x, dy = this.y - mouse.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 120) {
-        const force = (120 - dist) / 120 * 0.8;
+      if (dist < 140 && dist > 0) {
+        const force = (140 - dist) / 140 * 0.9;
         this.vx += (dx / dist) * force;
         this.vy += (dy / dist) * force;
       }
-      // dampen
       this.vx *= 0.97;
       this.vy = this.vy * 0.97 - this.speed * 0.03;
-
+      this.rot += this.rotSpeed;
       this.x += this.vx;
       this.y += this.vy;
 
-      if (this.life >= this.maxLife || this.y < -10) this.reset(false);
+      if (this.life >= this.maxLife || this.y < -20) this.reset(false);
     }
     draw() {
       ctx.save();
       ctx.globalAlpha = this.alpha;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#ffffff';
-      ctx.fill();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rot);
+
+      if (this.type === 0) {
+        // dot
+        ctx.beginPath();
+        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ffffff';
+        ctx.fill();
+      } else if (this.type === 1) {
+        // ring
+        ctx.beginPath();
+        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.6;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#ffffff';
+        ctx.stroke();
+      } else if (this.type === 2) {
+        // cross / plus
+        const s = this.r;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.8;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(-s, 0); ctx.lineTo(s, 0);
+        ctx.moveTo(0, -s); ctx.lineTo(0, s);
+        ctx.stroke();
+      } else {
+        // diamond
+        const s = this.r;
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.lineTo(s, 0);
+        ctx.lineTo(0, s);
+        ctx.lineTo(-s, 0);
+        ctx.closePath();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.6;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ffffff';
+        ctx.stroke();
+      }
       ctx.restore();
     }
   }
@@ -411,12 +459,12 @@ function initParticles() {
         const dx = particles[i].x - particles[j].x;
         const dy = particles[i].y - particles[j].y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 100) {
-          const a = (1 - d / 100) * 0.08;
+        if (d < 90) {
+          const a = (1 - d / 90) * 0.07;
           ctx.save();
           ctx.globalAlpha = a;
           ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 0.5;
+          ctx.lineWidth = 0.4;
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
@@ -427,10 +475,23 @@ function initParticles() {
     }
   }
 
+  // Mouse spotlight glow on canvas
+  function drawSpotlight() {
+    if (mouse.x < 0) return;
+    const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
+    grad.addColorStop(0, 'rgba(255,255,255,0.04)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
   for (let i = 0; i < COUNT; i++) particles.push(new Particle());
 
   function loop() {
     ctx.clearRect(0, 0, W, H);
+    drawSpotlight();
     drawConnections();
     particles.forEach(p => { p.update(); p.draw(); });
     requestAnimationFrame(loop);
