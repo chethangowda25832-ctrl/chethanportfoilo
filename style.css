@@ -427,18 +427,6 @@ h1 { font-size: clamp(2rem, 5vw, 3.75rem); font-weight: 700; line-height: 1.15; 
 .float-anim { animation: floatIcon 3s ease-in-out infinite; animation-delay: var(--fd, 0s); }
 @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-/* 3D Cube */
-.cube-canvas {
-  position: absolute;
-  bottom: -70px;
-  right: -90px;
-  width: 200px;
-  height: 200px;
-  pointer-events: none;
-  z-index: 2;
-  filter: drop-shadow(0 0 24px rgba(255,255,255,0.12));
-}
-
 /* Scroll indicator */
 .scroll-indicator {
   position: absolute;
