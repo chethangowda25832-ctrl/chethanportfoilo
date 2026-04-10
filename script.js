@@ -337,34 +337,106 @@ function initTyping() {
 /* ===== PARTICLES ===== */
 function initParticles() {
   const container = document.getElementById('particles-container');
-  for (let i = 0; i < 15; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.cssText = `
-      position: fixed;
-      left: ${Math.random() * 100}%;
-      bottom: -10px;
-      width: 2px; height: 2px;
-      background: var(--neon-green);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      animation: float-particle ${8 + Math.random() * 12}s linear ${Math.random() * 10}s infinite;
-    `;
-    container.appendChild(p);
-  }
-}
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  container.appendChild(canvas);
 
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  @keyframes float-particle {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    10% { opacity: 0.6; }
-    90% { opacity: 0.6; }
-    100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], mouse = { x: -9999, y: -9999 };
+  const COUNT = 90;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
   }
-`;
-document.head.appendChild(styleSheet);
+  resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x = Math.random() * W;
+      this.y = init ? Math.random() * H : H + 10;
+      this.r = 0.5 + Math.random() * 1.5;
+      this.speed = 0.3 + Math.random() * 0.7;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = -(this.speed);
+      this.alpha = 0;
+      this.maxAlpha = 0.2 + Math.random() * 0.5;
+      this.life = 0;
+      this.maxLife = 200 + Math.random() * 300;
+    }
+    update() {
+      this.life++;
+      // fade in / out
+      if (this.life < 40) this.alpha = (this.life / 40) * this.maxAlpha;
+      else if (this.life > this.maxLife - 40) this.alpha = ((this.maxLife - this.life) / 40) * this.maxAlpha;
+      else this.alpha = this.maxAlpha;
+
+      // mouse repulsion
+      const dx = this.x - mouse.x, dy = this.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        const force = (120 - dist) / 120 * 0.8;
+        this.vx += (dx / dist) * force;
+        this.vy += (dy / dist) * force;
+      }
+      // dampen
+      this.vx *= 0.97;
+      this.vy = this.vy * 0.97 - this.speed * 0.03;
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      if (this.life >= this.maxLife || this.y < -10) this.reset(false);
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // connection lines between nearby particles
+  function drawConnections() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 100) {
+          const a = (1 - d / 100) * 0.08;
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < COUNT; i++) particles.push(new Particle());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    drawConnections();
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
 
 /* ===== SCROLL REVEAL ===== */
 function initReveal() {
