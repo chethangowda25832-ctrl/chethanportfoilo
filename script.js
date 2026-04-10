@@ -336,7 +336,6 @@ function initTyping() {
 
 /* ===== BACKGROUND AURORA ===== */
 function initBackground() {
-  // Hide old grid div
   const grid = document.querySelector('.cyber-grid');
   if (grid) grid.style.display = 'none';
 
@@ -344,83 +343,111 @@ function initBackground() {
   canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
   document.body.insertBefore(canvas, document.body.firstChild);
   const ctx = canvas.getContext('2d');
-  let W, H, t = 0;
+  let W, H;
+  const mouse = { x: -9999, y: -9999 };
 
-  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => { resize(); initNodes(); });
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
-  // Animated aurora blobs
-  const blobs = [
-    { x: 0.15, y: 0.25, r: 0.38, speed: 0.00018, phase: 0,    color: 'rgba(255,255,255,0.028)' },
-    { x: 0.80, y: 0.65, r: 0.42, speed: 0.00013, phase: 2.1,  color: 'rgba(200,200,200,0.022)' },
-    { x: 0.50, y: 0.50, r: 0.55, speed: 0.00010, phase: 4.2,  color: 'rgba(255,255,255,0.015)' },
-    { x: 0.25, y: 0.80, r: 0.30, speed: 0.00022, phase: 1.0,  color: 'rgba(180,180,180,0.020)' },
-    { x: 0.75, y: 0.20, r: 0.32, speed: 0.00016, phase: 3.3,  color: 'rgba(255,255,255,0.018)' },
-  ];
+  const CONNECT_DIST = 150;
+  const MOUSE_DIST   = 180;
+  const SPEED        = 0.45;
+  let nodes = [];
 
-  // Dot-matrix grid (replaces old CSS grid, but animated)
-  function drawGrid() {
-    const spacing = 50;
-    ctx.save();
-    for (let x = 0; x < W; x += spacing) {
-      for (let y = 0; y < H; y += spacing) {
-        const pulse = 0.5 + 0.5 * Math.sin(t * 0.0008 + x * 0.01 + y * 0.01);
-        ctx.globalAlpha = 0.04 * pulse;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x, y, 0.8, 0, Math.PI * 2);
-        ctx.fill();
-      }
+  function initNodes() {
+    nodes = [];
+    const count = Math.floor((W * H) / 8500);
+    for (let i = 0; i < count; i++) {
+      nodes.push({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * SPEED,
+        vy: (Math.random() - 0.5) * SPEED,
+        r:  1.2 + Math.random() * 1.8,
+      });
     }
-    ctx.restore();
   }
-
-  // Horizontal scan lines (subtle)
-  function drawScanLines() {
-    ctx.save();
-    ctx.globalAlpha = 0.012;
-    for (let y = 0; y < H; y += 4) {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, y, W, 1);
-    }
-    ctx.restore();
-  }
-
-  // Vignette — dark edges, bright center
-  function drawVignette() {
-    const grad = ctx.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.85);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, 'rgba(0,0,0,0.55)');
-    ctx.save();
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
+  initNodes();
 
   function loop() {
-    t++;
     ctx.clearRect(0, 0, W, H);
 
-    // Aurora blobs
-    blobs.forEach(b => {
-      const ox = Math.sin(t * b.speed * 1.3 + b.phase) * 0.12;
-      const oy = Math.cos(t * b.speed + b.phase) * 0.10;
-      const cx = (b.x + ox) * W;
-      const cy = (b.y + oy) * H;
-      const r  = b.r * Math.max(W, H);
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      grad.addColorStop(0, b.color);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
+    // Update nodes
+    nodes.forEach(n => {
+      // mouse attraction
+      const mdx = mouse.x - n.x, mdy = mouse.y - n.y;
+      const md  = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (md < MOUSE_DIST && md > 0) {
+        const force = (MOUSE_DIST - md) / MOUSE_DIST * 0.06;
+        n.vx += (mdx / md) * force;
+        n.vy += (mdy / md) * force;
+      }
+      // dampen & move
+      n.vx *= 0.98;
+      n.vy *= 0.98;
+      n.x  += n.vx;
+      n.y  += n.vy;
+      // bounce walls
+      if (n.x < 0)  { n.x = 0;  n.vx *= -1; }
+      if (n.x > W)  { n.x = W;  n.vx *= -1; }
+      if (n.y < 0)  { n.y = 0;  n.vy *= -1; }
+      if (n.y > H)  { n.y = H;  n.vy *= -1; }
+    });
+
+    // Draw lines between close nodes
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const d  = Math.sqrt(dx * dx + dy * dy);
+        if (d < CONNECT_DIST) {
+          const alpha = (1 - d / CONNECT_DIST) * 0.4;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth   = 0.7;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+      // also draw line from node to mouse if close
+      const mdx = nodes[i].x - mouse.x, mdy = nodes[i].y - mouse.y;
+      const md  = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (md < MOUSE_DIST) {
+        const alpha = (1 - md / MOUSE_DIST) * 0.5;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth   = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Draw nodes
+    nodes.forEach(n => {
       ctx.save();
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle   = '#ffffff';
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
     });
 
-    drawGrid();
-    drawScanLines();
-    drawVignette();
     requestAnimationFrame(loop);
   }
   loop();
@@ -428,167 +455,7 @@ function initBackground() {
 
 /* ===== PARTICLES ===== */
 function initParticles() {
-  const container = document.getElementById('particles-container');
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
-  container.appendChild(canvas);
-
-  const ctx = canvas.getContext('2d');
-  let W, H, particles = [], mouse = { x: -9999, y: -9999 };
-  const COUNT = 160; // more particles
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-
-  // Particle types: 0=dot, 1=ring, 2=cross, 3=diamond
-  class Particle {
-    constructor() { this.reset(true); }
-    reset(init) {
-      this.x = Math.random() * W;
-      this.y = init ? Math.random() * H : H + 10;
-      this.type = Math.floor(Math.random() * 4);
-      this.r = this.type === 0 ? 0.5 + Math.random() * 1.5
-             : this.type === 1 ? 2 + Math.random() * 3
-             : this.type === 2 ? 2 + Math.random() * 2
-             : 1.5 + Math.random() * 2;
-      this.speed = 0.2 + Math.random() * 0.6;
-      this.vx = (Math.random() - 0.5) * 0.3;
-      this.vy = -(this.speed);
-      this.alpha = 0;
-      this.maxAlpha = this.type === 0 ? 0.3 + Math.random() * 0.5
-                    : this.type === 1 ? 0.15 + Math.random() * 0.25
-                    : 0.2 + Math.random() * 0.35;
-      this.life = 0;
-      this.maxLife = 180 + Math.random() * 320;
-      this.rot = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.02;
-    }
-    update() {
-      this.life++;
-      const fadeLen = 50;
-      if (this.life < fadeLen) this.alpha = (this.life / fadeLen) * this.maxAlpha;
-      else if (this.life > this.maxLife - fadeLen) this.alpha = ((this.maxLife - this.life) / fadeLen) * this.maxAlpha;
-      else this.alpha = this.maxAlpha;
-
-      // mouse repulsion
-      const dx = this.x - mouse.x, dy = this.y - mouse.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 140 && dist > 0) {
-        const force = (140 - dist) / 140 * 0.9;
-        this.vx += (dx / dist) * force;
-        this.vy += (dy / dist) * force;
-      }
-      this.vx *= 0.97;
-      this.vy = this.vy * 0.97 - this.speed * 0.03;
-      this.rot += this.rotSpeed;
-      this.x += this.vx;
-      this.y += this.vy;
-
-      if (this.life >= this.maxLife || this.y < -20) this.reset(false);
-    }
-    draw() {
-      ctx.save();
-      ctx.globalAlpha = this.alpha;
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.rot);
-
-      if (this.type === 0) {
-        // dot
-        ctx.beginPath();
-        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#ffffff';
-        ctx.fill();
-      } else if (this.type === 1) {
-        // ring
-        ctx.beginPath();
-        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.6;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#ffffff';
-        ctx.stroke();
-      } else if (this.type === 2) {
-        // cross / plus
-        const s = this.r;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.8;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(-s, 0); ctx.lineTo(s, 0);
-        ctx.moveTo(0, -s); ctx.lineTo(0, s);
-        ctx.stroke();
-      } else {
-        // diamond
-        const s = this.r;
-        ctx.beginPath();
-        ctx.moveTo(0, -s);
-        ctx.lineTo(s, 0);
-        ctx.lineTo(0, s);
-        ctx.lineTo(-s, 0);
-        ctx.closePath();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.6;
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = '#ffffff';
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-  }
-
-  // connection lines between nearby particles
-  function drawConnections() {
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 90) {
-          const a = (1 - d / 90) * 0.07;
-          ctx.save();
-          ctx.globalAlpha = a;
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 0.4;
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-    }
-  }
-
-  // Mouse spotlight glow on canvas
-  function drawSpotlight() {
-    if (mouse.x < 0) return;
-    const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
-    grad.addColorStop(0, 'rgba(255,255,255,0.04)');
-    grad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.save();
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-
-  for (let i = 0; i < COUNT; i++) particles.push(new Particle());
-
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-    drawSpotlight();
-    drawConnections();
-    particles.forEach(p => { p.update(); p.draw(); });
-    requestAnimationFrame(loop);
-  }
-  loop();
+  // Particle dots handled by initBackground node network
 }
 
 /* ===== SCROLL REVEAL ===== */
