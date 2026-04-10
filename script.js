@@ -432,128 +432,175 @@ function initCube() {
   const canvas = document.getElementById('cube-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const S = 160;
+  const S = 200;
   canvas.width = S; canvas.height = S;
 
-  // Each mini-cube cell size and gap
-  const N = 3;          // 3x3x3
-  const CELL = 28;      // cell face size
-  const GAP  = 3;       // gap between cells
-  const STEP = CELL + GAP;
-
-  let angleX = 0.52, angleY = 0.78;
-
-  // Project 3D point to 2D isometric-style perspective
-  function project(x, y, z) {
-    const cosX = Math.cos(angleX), sinX = Math.sin(angleX);
-    const cosY = Math.cos(angleY), sinY = Math.sin(angleY);
-    // rotate Y
-    const x1 = x * cosY - z * sinY;
-    const z1 = x * sinY + z * cosY;
-    // rotate X
-    const y2 = y * cosX - z1 * sinX;
-    const z2 = y * sinX + z1 * cosX;
-    const fov = 320;
-    const scale = fov / (fov + z2 + 80);
-    return {
-      sx: S / 2 + x1 * scale,
-      sy: S / 2 + y2 * scale,
-      z: z2,
-    };
+  // ── Matrix helpers ──────────────────────────────────────────
+  function mat4() { return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; }
+  function mulM(a, b) {
+    const r = new Array(16).fill(0);
+    for (let i=0;i<4;i++) for (let j=0;j<4;j++)
+      for (let k=0;k<4;k++) r[i*4+j] += a[i*4+k]*b[k*4+j];
+    return r;
+  }
+  function rotX(a) { const c=Math.cos(a),s=Math.sin(a); return [1,0,0,0, 0,c,-s,0, 0,s,c,0, 0,0,0,1]; }
+  function rotY(a) { const c=Math.cos(a),s=Math.sin(a); return [c,0,s,0, 0,1,0,0, -s,0,c,0, 0,0,0,1]; }
+  function rotZ(a) { const c=Math.cos(a),s=Math.sin(a); return [c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1]; }
+  function applyM(m, v) {
+    return [
+      m[0]*v[0]+m[1]*v[1]+m[2]*v[2]+m[3],
+      m[4]*v[0]+m[5]*v[1]+m[6]*v[2]+m[7],
+      m[8]*v[0]+m[9]*v[1]+m[10]*v[2]+m[11],
+    ];
+  }
+  function project(v) {
+    const fov = 5.5, z = v[2] + fov;
+    return [v[0]/z * S*0.9 + S/2, v[1]/z * S*0.9 + S/2];
   }
 
-  // Draw a single quad face given 4 3D corners
-  function drawFace(pts, fillColor, strokeColor) {
-    const p = pts.map(([x,y,z]) => project(x, y, z));
-    ctx.beginPath();
-    ctx.moveTo(p[0].sx, p[0].sy);
-    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].sx, p[i].sy);
-    ctx.closePath();
-    ctx.fillStyle = fillColor;
-    ctx.fill();
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
+  // ── Build 27 mini-cubes ──────────────────────────────────────
+  const N = 3, HALF = 1.05;
+  const spacing = HALF;
+  const cubelets = [];
+  for (let x=-1;x<=1;x++) for (let y=-1;y<=1;y++) for (let z=-1;z<=1;z++) {
+    cubelets.push({
+      // base position (grid index)
+      gx: x, gy: y, gz: z,
+      // current world matrix (starts as identity)
+      mat: mat4(),
+      // origin offset
+      ox: x*spacing, oy: y*spacing, oz: z*spacing,
+    });
   }
 
-  // Build all mini-cube faces for one face of the big cube
-  // axis: which face (top, front, right)
-  function buildFaces() {
-    const faces = [];
-    const half = (N * STEP) / 2;
+  // ── Face definitions per cubelet (6 faces, each 4 corners) ──
+  const H = 0.48; // half-size of each mini-cube face
+  const FACES_DEF = [
+    { corners: [[-H,-H, H],[ H,-H, H],[ H, H, H],[-H, H, H]], nx:0,ny:0,nz:1  }, // front
+    { corners: [[ H,-H,-H],[-H,-H,-H],[-H, H,-H],[ H, H,-H]], nx:0,ny:0,nz:-1 }, // back
+    { corners: [[-H,-H,-H],[-H,-H, H],[-H, H, H],[-H, H,-H]], nx:-1,ny:0,nz:0 }, // left
+    { corners: [[ H,-H, H],[ H,-H,-H],[ H, H,-H],[ H, H, H]], nx:1,ny:0,nz:0  }, // right
+    { corners: [[-H,-H,-H],[ H,-H,-H],[ H,-H, H],[-H,-H, H]], nx:0,ny:-1,nz:0 }, // top
+    { corners: [[-H, H, H],[ H, H, H],[ H, H,-H],[-H, H,-H]], nx:0,ny:1,nz:0  }, // bottom
+  ];
 
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        const u = -half + c * STEP + GAP / 2;
-        const v = -half + r * STEP + GAP / 2;
-        const w = half; // face offset
+  // ── Global rotation ──────────────────────────────────────────
+  let globalRX = 0.5, globalRY = 0.8;
 
-        // TOP face (y = +half)
-        faces.push({
-          pts: [
-            [u,        w, v       ],
-            [u + CELL, w, v       ],
-            [u + CELL, w, v + CELL],
-            [u,        w, v + CELL],
-          ],
-          shade: 0.85,
-        });
+  // ── Layer twist system ───────────────────────────────────────
+  // axis: 'x'|'y'|'z', layer: -1|0|1, angle, speed, done
+  let twists = [];
+  let twistTimer = 0;
 
-        // FRONT face (z = +half)
-        faces.push({
-          pts: [
-            [u,        v,        w],
-            [u + CELL, v,        w],
-            [u + CELL, v + CELL, w],
-            [u,        v + CELL, w],
-          ],
-          shade: 0.55,
-        });
-
-        // RIGHT face (x = +half)
-        faces.push({
-          pts: [
-            [w, v,        u       ],
-            [w, v,        u + CELL],
-            [w, v + CELL, u + CELL],
-            [w, v + CELL, u       ],
-          ],
-          shade: 0.70,
-        });
-      }
-    }
-    return faces;
+  function scheduleTwist() {
+    const axes = ['x','y','z'];
+    const axis  = axes[Math.floor(Math.random()*3)];
+    const layer = [-1,0,1][Math.floor(Math.random()*3)];
+    const dir   = Math.random() > 0.5 ? 1 : -1;
+    twists.push({ axis, layer, progress: 0, total: Math.PI/2, dir, speed: 0.04 });
   }
 
-  function getColor(shade) {
-    const v = Math.round(shade * 38);
-    return `rgb(${v},${v},${v})`;
-  }
-  function getStroke(shade) {
-    const v = Math.round(shade * 120 + 80);
-    return `rgba(${v},${v},${v},0.9)`;
+  function getTwistMatrix(axis, angle) {
+    if (axis==='x') return rotX(angle);
+    if (axis==='y') return rotY(angle);
+    return rotZ(angle);
   }
 
+  function cubeletInLayer(c, axis, layer) {
+    const eps = 0.6;
+    if (axis==='x') return Math.abs(c.ox - layer*spacing) < eps;
+    if (axis==='y') return Math.abs(c.oy - layer*spacing) < eps;
+    return Math.abs(c.oz - layer*spacing) < eps;
+  }
+
+  // ── Render ───────────────────────────────────────────────────
   function render() {
     ctx.clearRect(0, 0, S, S);
 
-    const faces = buildFaces();
+    const gMat = mulM(rotX(globalRX), rotY(globalRY));
 
-    // Sort by average Z so back faces draw first
-    faces.sort((a, b) => {
-      const za = a.pts.reduce((s, p) => s + project(...p).z, 0) / a.pts.length;
-      const zb = b.pts.reduce((s, p) => s + project(...p).z, 0) / b.pts.length;
-      return za - zb;
+    // Collect all visible faces with their avg Z for depth sort
+    const allFaces = [];
+
+    cubelets.forEach(c => {
+      // combine cubelet local mat + global rotation
+      const m = mulM(gMat, c.mat);
+
+      FACES_DEF.forEach(fd => {
+        // transform normal to check visibility
+        const n = applyM(m, [fd.nx, fd.ny, fd.nz]);
+        // simple back-face cull: if normal Z > 0 it faces camera
+        if (n[2] < 0.05) return;
+
+        const pts2d = fd.corners.map(corner => {
+          const local = [corner[0]+c.ox, corner[1]+c.oy, corner[2]+c.oz];
+          const world = applyM(m, local);
+          return project(world);
+        });
+
+        // avg depth
+        const avgZ = fd.corners.reduce((s, corner) => {
+          const local = [corner[0]+c.ox, corner[1]+c.oy, corner[2]+c.oz];
+          return s + applyM(m, local)[2];
+        }, 0) / 4;
+
+        // shading based on normal direction
+        const shade = Math.max(0.15, n[2] * 0.7 + Math.abs(n[0]) * 0.2 + Math.abs(n[1]) * 0.15);
+
+        allFaces.push({ pts2d, avgZ, shade });
+      });
     });
 
-    faces.forEach(f => {
-      drawFace(f.pts, getColor(f.shade), getStroke(f.shade));
+    // depth sort
+    allFaces.sort((a,b) => a.avgZ - b.avgZ);
+
+    allFaces.forEach(f => {
+      const v = Math.round(f.shade * 55);
+      const sv = Math.round(f.shade * 130 + 30);
+      ctx.beginPath();
+      ctx.moveTo(f.pts2d[0][0], f.pts2d[0][1]);
+      for (let i=1;i<f.pts2d.length;i++) ctx.lineTo(f.pts2d[i][0], f.pts2d[i][1]);
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fill();
+      ctx.strokeStyle = `rgba(${sv},${sv},${sv},0.85)`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     });
   }
 
+  // ── Main loop ────────────────────────────────────────────────
   function loop() {
-    angleY += 0.008;
-    angleX += 0.003;
+    // global slow rotation
+    globalRY += 0.012;
+    globalRX += 0.004;
+
+    // twist timer
+    twistTimer++;
+    if (twistTimer > 80 && twists.length < 2) {
+      scheduleTwist();
+      twistTimer = 0;
+    }
+
+    // process active twists
+    twists = twists.filter(t => {
+      const step = Math.min(t.speed, t.total - t.progress);
+      const angle = step * t.dir;
+      const tm = getTwistMatrix(t.axis, angle);
+
+      cubelets.forEach(c => {
+        if (!cubeletInLayer(c, t.axis, t.layer)) return;
+        // rotate the cubelet's matrix
+        c.mat = mulM(tm, c.mat);
+        // also rotate its origin so it moves with the layer
+        const newO = applyM(tm, [c.ox, c.oy, c.oz]);
+        c.ox = newO[0]; c.oy = newO[1]; c.oz = newO[2];
+      });
+
+      t.progress += step;
+      return t.progress < t.total - 0.001;
+    });
+
     render();
     requestAnimationFrame(loop);
   }
