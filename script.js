@@ -427,6 +427,139 @@ function initParticles() {
   // Particle dots handled by initBackground node network
 }
 
+/* ===== 3D RUBIK'S CUBE ===== */
+function initCube() {
+  const canvas = document.getElementById('cube-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const S = 160;
+  canvas.width = S; canvas.height = S;
+
+  // Each mini-cube cell size and gap
+  const N = 3;          // 3x3x3
+  const CELL = 28;      // cell face size
+  const GAP  = 3;       // gap between cells
+  const STEP = CELL + GAP;
+
+  let angleX = 0.52, angleY = 0.78;
+
+  // Project 3D point to 2D isometric-style perspective
+  function project(x, y, z) {
+    const cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+    const cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+    // rotate Y
+    const x1 = x * cosY - z * sinY;
+    const z1 = x * sinY + z * cosY;
+    // rotate X
+    const y2 = y * cosX - z1 * sinX;
+    const z2 = y * sinX + z1 * cosX;
+    const fov = 320;
+    const scale = fov / (fov + z2 + 80);
+    return {
+      sx: S / 2 + x1 * scale,
+      sy: S / 2 + y2 * scale,
+      z: z2,
+    };
+  }
+
+  // Draw a single quad face given 4 3D corners
+  function drawFace(pts, fillColor, strokeColor) {
+    const p = pts.map(([x,y,z]) => project(x, y, z));
+    ctx.beginPath();
+    ctx.moveTo(p[0].sx, p[0].sy);
+    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].sx, p[i].sy);
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // Build all mini-cube faces for one face of the big cube
+  // axis: which face (top, front, right)
+  function buildFaces() {
+    const faces = [];
+    const half = (N * STEP) / 2;
+
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const u = -half + c * STEP + GAP / 2;
+        const v = -half + r * STEP + GAP / 2;
+        const w = half; // face offset
+
+        // TOP face (y = +half)
+        faces.push({
+          pts: [
+            [u,        w, v       ],
+            [u + CELL, w, v       ],
+            [u + CELL, w, v + CELL],
+            [u,        w, v + CELL],
+          ],
+          shade: 0.85,
+        });
+
+        // FRONT face (z = +half)
+        faces.push({
+          pts: [
+            [u,        v,        w],
+            [u + CELL, v,        w],
+            [u + CELL, v + CELL, w],
+            [u,        v + CELL, w],
+          ],
+          shade: 0.55,
+        });
+
+        // RIGHT face (x = +half)
+        faces.push({
+          pts: [
+            [w, v,        u       ],
+            [w, v,        u + CELL],
+            [w, v + CELL, u + CELL],
+            [w, v + CELL, u       ],
+          ],
+          shade: 0.70,
+        });
+      }
+    }
+    return faces;
+  }
+
+  function getColor(shade) {
+    const v = Math.round(shade * 38);
+    return `rgb(${v},${v},${v})`;
+  }
+  function getStroke(shade) {
+    const v = Math.round(shade * 120 + 80);
+    return `rgba(${v},${v},${v},0.9)`;
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, S, S);
+
+    const faces = buildFaces();
+
+    // Sort by average Z so back faces draw first
+    faces.sort((a, b) => {
+      const za = a.pts.reduce((s, p) => s + project(...p).z, 0) / a.pts.length;
+      const zb = b.pts.reduce((s, p) => s + project(...p).z, 0) / b.pts.length;
+      return za - zb;
+    });
+
+    faces.forEach(f => {
+      drawFace(f.pts, getColor(f.shade), getStroke(f.shade));
+    });
+  }
+
+  function loop() {
+    angleY += 0.008;
+    angleX += 0.003;
+    render();
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
 /* ===== SCROLL REVEAL ===== */
 function initReveal() {
   const observer = new IntersectionObserver((entries) => {
@@ -643,9 +776,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initTyping();
   initBackground();
   initParticles();
+  initCube();
   renderSkills(0);
   renderProjects('all');
   renderExperienceTab('experience');
-  
   setTimeout(initReveal, 100);
 });
