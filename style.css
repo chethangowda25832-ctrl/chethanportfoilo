@@ -104,23 +104,8 @@ strong.neon, b.neon {
 .x-small { font-size: 0.75rem; }
 
 /* ===== BACKGROUND EFFECTS ===== */
-.cyber-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.04;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-html.light .cyber-grid {
-  opacity: 0.04;
-  background-image:
-    linear-gradient(rgba(0,0,0,0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.15) 1px, transparent 1px);
-}
+/* cyber-grid removed — replaced by canvas aurora background */
+html.light .cyber-grid { display: none; }
 
 /* ===== GLASS ===== */
 .glass {

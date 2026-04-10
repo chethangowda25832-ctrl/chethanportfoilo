@@ -334,6 +334,98 @@ function initTyping() {
   tick();
 }
 
+/* ===== BACKGROUND AURORA ===== */
+function initBackground() {
+  // Hide old grid div
+  const grid = document.querySelector('.cyber-grid');
+  if (grid) grid.style.display = 'none';
+
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  document.body.insertBefore(canvas, document.body.firstChild);
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Animated aurora blobs
+  const blobs = [
+    { x: 0.15, y: 0.25, r: 0.38, speed: 0.00018, phase: 0,    color: 'rgba(255,255,255,0.028)' },
+    { x: 0.80, y: 0.65, r: 0.42, speed: 0.00013, phase: 2.1,  color: 'rgba(200,200,200,0.022)' },
+    { x: 0.50, y: 0.50, r: 0.55, speed: 0.00010, phase: 4.2,  color: 'rgba(255,255,255,0.015)' },
+    { x: 0.25, y: 0.80, r: 0.30, speed: 0.00022, phase: 1.0,  color: 'rgba(180,180,180,0.020)' },
+    { x: 0.75, y: 0.20, r: 0.32, speed: 0.00016, phase: 3.3,  color: 'rgba(255,255,255,0.018)' },
+  ];
+
+  // Dot-matrix grid (replaces old CSS grid, but animated)
+  function drawGrid() {
+    const spacing = 50;
+    ctx.save();
+    for (let x = 0; x < W; x += spacing) {
+      for (let y = 0; y < H; y += spacing) {
+        const pulse = 0.5 + 0.5 * Math.sin(t * 0.0008 + x * 0.01 + y * 0.01);
+        ctx.globalAlpha = 0.04 * pulse;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // Horizontal scan lines (subtle)
+  function drawScanLines() {
+    ctx.save();
+    ctx.globalAlpha = 0.012;
+    for (let y = 0; y < H; y += 4) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, y, W, 1);
+    }
+    ctx.restore();
+  }
+
+  // Vignette — dark edges, bright center
+  function drawVignette() {
+    const grad = ctx.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.85);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  function loop() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+
+    // Aurora blobs
+    blobs.forEach(b => {
+      const ox = Math.sin(t * b.speed * 1.3 + b.phase) * 0.12;
+      const oy = Math.cos(t * b.speed + b.phase) * 0.10;
+      const cx = (b.x + ox) * W;
+      const cy = (b.y + oy) * H;
+      const r  = b.r * Math.max(W, H);
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, b.color);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save();
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    });
+
+    drawGrid();
+    drawScanLines();
+    drawVignette();
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
 /* ===== PARTICLES ===== */
 function initParticles() {
   const container = document.getElementById('particles-container');
@@ -713,6 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNavbar();
   initTyping();
+  initBackground();
   initParticles();
   renderSkills(0);
   renderProjects('all');
